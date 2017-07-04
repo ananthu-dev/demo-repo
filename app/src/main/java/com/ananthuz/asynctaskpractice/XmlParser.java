@@ -20,98 +20,39 @@ import java.util.List;
 public class XmlParser extends GetXmlData{
 
     private String LOG_TAG=XmlParser.class.getSimpleName();
-    private String xmlData;
+    public static String xmlData;
+    private String webUrl;
     private ArrayList<PhotoDetails> photos;
 
     public XmlParser() {
         super(null);
-        xmlData=getXmlData();
-        photos= new ArrayList<PhotoDetails>();
+        photos= new ArrayList<>();
+    }
+
+    public void execute(){
+        //super.setUrl("https://api.flickr.com/services/feeds/photos_public.gne?format=xml&tags=doggo");
+        DownloadDataToParseClass downloadDataToParseClass= new DownloadDataToParseClass();
+        downloadDataToParseClass.execute();
+
     }
 
 
-    public void process(){
-
-        PhotoDetails currentRecord=null;
-        boolean inEntry=false;
-        boolean inAuthor=false;
-        String textValue="";
-        String tagName=null;
-        try{
-            XmlPullParserFactory xmlPullParserFactory= XmlPullParserFactory.newInstance();
-            xmlPullParserFactory.setNamespaceAware(true);
-            XmlPullParser xmlPullParser=xmlPullParserFactory.newPullParser();
-            xmlPullParser.setInput(new StringReader(xmlData));
-            int eventType=xmlPullParser.getEventType();
-            while (eventType!=xmlPullParser.END_DOCUMENT){
-
-                tagName=xmlPullParser.getName();
-                switch (eventType){
-
-                    case XmlPullParser.START_TAG:{
-                        Log.d(LOG_TAG,"Starting tag for: "+ tagName);
-                        if (tagName.equalsIgnoreCase("entry")){
-                            inEntry=true;
-                            currentRecord=new PhotoDetails();
-                        }
-                        break;
-                    }
-                    case XmlPullParser.TEXT: {
-                        textValue = xmlPullParser.getText();
-                        break;
-                    }
-                    case XmlPullParser.END_TAG:{
-                        if (inEntry){
-                            if (tagName.equalsIgnoreCase("entry")){
-                                photos.add(currentRecord);
-                                inEntry=false;
-                            }else if (tagName.equalsIgnoreCase("title")){
-                                currentRecord.setTitle(textValue);
-                            }else if (tagName.equalsIgnoreCase("link")){
-                                currentRecord.setPost_link(textValue);
-                            }else if (tagName.equalsIgnoreCase("id")){
-                                currentRecord.setPostid(textValue);
-                            } else if (tagName.equalsIgnoreCase("content")){
-                                currentRecord.setContent(textValue);
-                            }else if (tagName.equalsIgnoreCase("author")) {
-                                inAuthor = true;
-                                if (inAuthor) {
-                                    inAuthor = false;
-                                    if (tagName.equalsIgnoreCase("name")) {
-                                        currentRecord.setAuthor_name(textValue);
-                                    } else if (tagName.equalsIgnoreCase("flickr:nsid")) {
-                                        currentRecord.setAuthor_id(textValue);
-                                    }
-                                }
-                            } else if (tagName.equalsIgnoreCase("link")){
-                                currentRecord.setPicture_link(textValue);
-                            }
-                        }
-                        break;
-                    }
-                    default:
-                }
-                eventType=xmlPullParser.next();
-
-            }
 
 
-        }catch (XmlPullParserException e){
-            Log.d(LOG_TAG,"XmlPulparserException, error is: "+ e);
-        }catch (IOException e){
-            Log.d(LOG_TAG,"IOException, error is: "+e);
+    public class DownloadDataToParseClass extends DownloadXmlData{
+
+        @Override
+        protected void onPostExecute(String downloadedData) {
+            xmlData=downloadedData;
+            Log.d("xmldata", "The data downloaded is:"+xmlData);
+            super.onPostExecute(downloadedData);
         }
 
-        for (PhotoDetails singlePhoto: photos){
-            Log.d(LOG_TAG,"***************************");
-            Log.d(LOG_TAG,"Title: "+ singlePhoto.getTitle());
-            Log.d(LOG_TAG,"Post Link: "+ singlePhoto.getPost_link());
-            Log.d(LOG_TAG,"Post ID: "+ singlePhoto.getPostid());
-            Log.d(LOG_TAG,"Content: "+ singlePhoto.getContent());
-            Log.d(LOG_TAG,"Author name: "+ singlePhoto.getAuthor_name());
-            Log.d(LOG_TAG,"Author ID: "+ singlePhoto.getAuthor_id());
-            Log.d(LOG_TAG,"Picture Link: "+singlePhoto.getPicture_link());
+        @Override
+        protected String doInBackground(String... strings) {
+            return super.doInBackground("https://api.flickr.com/services/feeds/photos_public.gne?format=xml&tags=doggo");
         }
-
     }
+
+
 }

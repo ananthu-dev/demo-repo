@@ -12,8 +12,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        GetXmlData getXmlData = new GetXmlData("https://api.flickr.com/services/feeds/photos_public.gne?format=xml&tags=doggo");
-        getXmlData.execute();
+        XmlParser xmlParser=new XmlParser();
+        xmlParser.execute();
 
     }
 
